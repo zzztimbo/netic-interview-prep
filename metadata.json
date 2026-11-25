@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.13.4",
+  "checkpoint_id": "01M887R5PYTZAZRNW3HM9ZGD3N",
+  "strategy": "manual-commit",
+  "branch": "company/netic",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "companies/netic/drills/checks.py",
+    "companies/netic/drills/problems/drill_02_async_session_race.py",
+    "companies/netic/drills/run_drill.py",
+    "companies/netic/drills/test_drills_suite.py",
+    "scripts/patch-entire-hooks.mjs"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 188805,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 704161,
+    "output_tokens": 2570,
+    "api_call_count": 5
+  },
+  "redaction": {
+    "replacements": 474,
+    "layers": {
+      "betterleaks": 2,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 0,
+      "credentialed_uri": 0,
+      "entropy": 2388,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  }
+}
