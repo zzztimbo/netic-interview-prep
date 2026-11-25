@@ -14,7 +14,7 @@ It's **5:00 AM**. You get paged: a $50K/day HVAC enterprise customer's AI voice 
 # cleanup_old_data.py — runs daily at 04:45 UTC
 def cleanup_old_data(db, now_utc):
     cutoff = now_utc - timedelta(days=90)
-    db.execute("DELETE FROM customer_Profiles_cache WHERE created_at < %s", [cutoff])
+    db.execute("DELETE FROM customer_profiles_cache WHERE created_at < %s", [cutoff])
     db.execute("DELETE FROM call_sessions WHERE updated_at < %s", [cutoff])
 ```
 
