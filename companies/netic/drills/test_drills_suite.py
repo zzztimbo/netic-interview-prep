@@ -8,7 +8,14 @@ import subprocess
 import sys
 import unittest
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
+def _find_repo_root(start: pathlib.Path) -> pathlib.Path:
+    for candidate in (start, *start.parents):
+        if (candidate / "AGENTS.md").exists() or (candidate / ".git").exists():
+            return candidate
+    raise RuntimeError(f"Could not locate repository root from {start}")
+
+
+REPO_ROOT = _find_repo_root(pathlib.Path(__file__).resolve())
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -72,6 +79,18 @@ class NeticDrillsVerificationTests(unittest.TestCase):
         )
         self.assertEqual(pass_proc.returncode, 0)
         self.assertIn("[PASS]", pass_proc.stdout)
+
+    def test_entire_hook_shims_guard_stdin_epipe(self) -> None:
+        """Verify generated Entire hook files keep async stdin EPIPE guards (re-applied via scripts/patch-entire-hooks.mjs)."""
+        patch_script = REPO_ROOT / "scripts" / "patch-entire-hooks.mjs"
+        self.assertTrue(patch_script.exists(), "scripts/patch-entire-hooks.mjs must exist")
+        proc = subprocess.run(
+            ["node", str(patch_script), "--check"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 0, msg=proc.stderr or proc.stdout)
 
 
 if __name__ == "__main__":

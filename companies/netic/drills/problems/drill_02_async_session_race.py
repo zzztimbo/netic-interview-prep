@@ -46,7 +46,7 @@ class VoiceBookingCoordinator:
             }
 
         await asyncio.sleep(0.01)
-        self._open_slots.remove(slot_id)
+        self._open_slots.discard(slot_id)
         await crm_notify(self._current_call["customer_id"] or "", slot_id)
         self._bookings[slot_id] = self._current_call["customer_id"] or ""
 

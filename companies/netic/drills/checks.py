@@ -25,7 +25,7 @@ def check_drill_01(mod: ModuleType) -> list[str]:
     if mod.find_earliest_slot([s2, s1], s1) != s1:
         failures.append("unsorted available_slots did not return the earliest qualifying slot")
 
-    # 3. Naive datetime rejection
+    # 3. Naive datetime rejection (both preferred_time and elements of available_slots)
     try:
         mod.find_earliest_slot([s1], datetime(2026, 12, 2, 10, 0))
         failures.append("naive preferred_time did not raise ValueError")
@@ -33,6 +33,14 @@ def check_drill_01(mod: ModuleType) -> list[str]:
         pass
     except Exception as exc:
         failures.append(f"naive preferred_time raised {type(exc).__name__} instead of ValueError")
+
+    try:
+        mod.find_earliest_slot([datetime(2026, 12, 2, 10, 0)], s1)
+        failures.append("naive slot in available_slots did not raise ValueError")
+    except ValueError:
+        pass
+    except Exception as exc:
+        failures.append(f"naive slot in available_slots raised {type(exc).__name__} instead of ValueError")
 
     # 4. Mutable default / caller list isolation in build_reservation
     r_urgent = mod.build_reservation("cust_a", s1, is_emergency=True)

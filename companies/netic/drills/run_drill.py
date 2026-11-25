@@ -13,7 +13,14 @@ import importlib
 import pathlib
 import sys
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
+def _find_repo_root(start: pathlib.Path) -> pathlib.Path:
+    for candidate in (start, *start.parents):
+        if (candidate / "AGENTS.md").exists() or (candidate / ".git").exists():
+            return candidate
+    raise RuntimeError(f"Could not locate repository root from {start}")
+
+
+REPO_ROOT = _find_repo_root(pathlib.Path(__file__).resolve())
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
