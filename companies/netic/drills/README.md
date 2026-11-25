@@ -1,6 +1,10 @@
 # Runnable Blind Debugging Drills (`companies/netic/drills/`)
 
-Four realistic, multi-bug Python mini-services modeled after Netic's production stack. Candidate files in `problems/` contain **zero `# BUG` spoiler comments** so you can practice genuine diagnosis in your editor with AI tools.
+Four standalone, multi-bug Python mini-services modeled after Netic's production stack.
+
+> **How `drills/` relates to `../exercises/`:**
+> - `../exercises/` (`01`–`12`) contains **12 short, self-contained Markdown study cards** (including cross-language React/TypeScript, FastAPI, and SQL snippets) for rapid 15–20 minute pattern recognition.
+> - `drills/` (`1`–`4`) is a **separate track of 4 executable, multi-defect Python service labs** with ticket-style docstrings in `problems/` and automated acceptance checks in `checks.py` — built for full IDE + AI debugging simulations with zero `# BUG` spoiler comments.
 
 ## Drills Included
 

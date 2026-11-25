@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Idempotently ensures Entire's generated OpenCode & Pi hook shims attach an
- * asynchronous `error` listener to `stdin` before calling `.end(...)` so an
- * early-exiting hook subprocess cannot raise an unhandled EPIPE error.
+ * asynchronous `error` listener to `stdin` before every `.stdin?.end(...)` call
+ * so an early-exiting hook subprocess cannot raise an unhandled EPIPE error.
  *
  * Run after `entire agent add opencode` or `entire agent add pi --force`.
  */
@@ -13,65 +13,78 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-function ensureOpencodeStdinGuard(filePath) {
-  if (!fs.existsSync(filePath)) return false;
-  const original = fs.readFileSync(filePath, "utf8");
-  const unguarded =
-    '        proc.on("error", () => resolve())\n' +
-    '        proc.on("close", () => resolve())\n' +
-    '        proc.stdin?.end(json + "\\n")';
-  const guarded =
-    '        proc.on("error", () => resolve())\n' +
-    '        proc.on("close", () => resolve())\n' +
-    '        proc.stdin?.on("error", () => {})\n' +
-    '        proc.stdin?.end(json + "\\n")';
-
-  if (original.includes(guarded)) return false;
-  if (!original.includes(unguarded)) {
-    throw new Error(`Unexpected callHook layout in ${filePath}; inspect manually.`);
+function hasGuardBeforeEveryStdinEnd(content) {
+  const lines = content.split("\n");
+  let foundAny = false;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes(".stdin?.end(")) {
+      foundAny = true;
+      const windowStart = Math.max(0, i - 3);
+      const preceding = lines.slice(windowStart, i).join("\n");
+      if (!preceding.includes('.stdin?.on("error"')) {
+        return { ok: false, line: i + 1 };
+      }
+    }
   }
-  fs.writeFileSync(filePath, original.replace(unguarded, guarded), "utf8");
-  return true;
+  return { ok: foundAny, line: foundAny ? null : 0 };
 }
 
-function ensurePiStdinGuard(filePath) {
+function patchAllStdinEnds(filePath) {
   if (!fs.existsSync(filePath)) return false;
-  const original = fs.readFileSync(filePath, "utf8");
-  if (original.includes('child.stdin?.on("error"')) return false;
-  const target = "        child.stdin?.end(JSON.stringify(data));";
-  const replacement =
-    '        child.stdin?.on("error", () => {});\n' +
-    "        child.stdin?.end(JSON.stringify(data));";
-  if (!original.includes(target)) {
-    throw new Error(`Unexpected stdin.end layout in ${filePath}; inspect manually.`);
+  const lines = fs.readFileSync(filePath, "utf8").split("\n");
+  let changed = false;
+  const out = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const match = line.match(/^(\s*)(\w+)\.stdin\?\.end\(/);
+    if (match) {
+      const indent = match[1];
+      const handle = match[2];
+      const windowStart = Math.max(0, out.length - 3);
+      const preceding = out.slice(windowStart).join("\n");
+      if (!preceding.includes(`${handle}.stdin?.on("error"`)) {
+        out.push(`${indent}${handle}.stdin?.on("error", () => {})`);
+        changed = true;
+      }
+    }
+    out.push(line);
   }
-  fs.writeFileSync(filePath, original.replace(target, replacement), "utf8");
-  return true;
+
+  if (changed) {
+    fs.writeFileSync(filePath, out.join("\n"), "utf8");
+  }
+  const verify = hasGuardBeforeEveryStdinEnd(out.join("\n"));
+  if (!verify.ok) {
+    throw new Error(`Verification failed in ${filePath} near line ${verify.line}`);
+  }
+  return changed;
 }
 
 const checkOnly = process.argv.includes("--check");
-const opencodeFile = path.join(repoRoot, ".opencode", "plugin", "entire.ts");
-const piFile = path.join(repoRoot, ".pi", "extensions", "entire", "index.ts");
+const targets = [
+  ["OpenCode plugin", path.join(repoRoot, ".opencode", "plugin", "entire.ts")],
+  ["Pi extension", path.join(repoRoot, ".pi", "extensions", "entire", "index.ts")],
+];
 
 if (checkOnly) {
-  for (const [label, filePath, snippet] of [
-    ["OpenCode callHook", opencodeFile, 'proc.stdin?.on("error"'],
-    ["Pi hook runner", piFile, 'child.stdin?.on("error"'],
-  ]) {
+  for (const [label, filePath] of targets) {
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, "utf8");
-      if (!content.includes(snippet)) {
-        console.error(`[FAIL] ${label} (${filePath}) missing ${snippet} guard (run: node scripts/patch-entire-hooks.mjs)`);
+      const check = hasGuardBeforeEveryStdinEnd(content);
+      if (!check.ok) {
+        console.error(
+          `[FAIL] ${label} (${filePath}:${check.line}) has unguarded .stdin?.end(...) call (run: node scripts/patch-entire-hooks.mjs)`,
+        );
         process.exit(1);
       }
     }
   }
-  console.log("[PASS] Entire hook shims guard async stdin EPIPE.");
+  console.log("[PASS] Every .stdin?.end(...) call in Entire hook shims is guarded against EPIPE.");
   process.exit(0);
 }
 
-const patchedOpencode = ensureOpencodeStdinGuard(opencodeFile);
-const patchedPi = ensurePiStdinGuard(piFile);
-console.log(
-  `patch-entire-hooks: opencode=${patchedOpencode ? "patched" : "already-guarded"}, pi=${patchedPi ? "patched" : "already-guarded"}`,
-);
+for (const [label, filePath] of targets) {
+  const updated = patchAllStdinEnds(filePath);
+  console.log(`${label}: ${updated ? "patched" : "already-guarded"}`);
+}

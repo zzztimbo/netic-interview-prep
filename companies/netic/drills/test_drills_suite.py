@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import pathlib
+import shutil
 import subprocess
 import sys
 import unittest
@@ -82,6 +83,8 @@ class NeticDrillsVerificationTests(unittest.TestCase):
 
     def test_entire_hook_shims_guard_stdin_epipe(self) -> None:
         """Verify generated Entire hook files keep async stdin EPIPE guards (re-applied via scripts/patch-entire-hooks.mjs)."""
+        if shutil.which("node") is None:
+            self.skipTest("Node.js runtime not installed on PATH")
         patch_script = REPO_ROOT / "scripts" / "patch-entire-hooks.mjs"
         self.assertTrue(patch_script.exists(), "scripts/patch-entire-hooks.mjs must exist")
         proc = subprocess.run(

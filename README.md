@@ -6,7 +6,7 @@ Interview preparation repository — tracking companies, roles, study materials,
 
 - **[Netic (`companies/netic/`)](companies/netic/01-research-summary.md)** — 45-minute virtual debugging interview with Ze Huang (Wednesday, Dec 2, 2026)
   - [`01-research-summary.md`](companies/netic/01-research-summary.md) — Company architecture, open Ashby roles, Ze Huang profile, and engineering team breakdown
-  - [`02-debugging-methodology.md`](companies/netic/02-debugging-methodology.md) — 3-question framework, 6-step debugging loop, out-loud prompts, and AI tool collaboration rules
+  - [`02-debugging-methodology.md`](companies/netic/02-debugging-methodology.md) — 3-question framework, 5-step debugging loop, out-loud prompts, and AI tool collaboration rules
   - [`03-prep-plan.md`](companies/netic/03-prep-plan.md) — 8-day preparation schedule (Tue Nov 24 → Wed Dec 2, 2026)
   - [`04-interview-day-checklist.md`](companies/netic/04-interview-day-checklist.md) — Pre/during/post interview checklist and questions for Ze
   - [`05-my-playbook.md`](companies/netic/05-my-playbook.md) — 1-page personal notes and cheat-sheet template
