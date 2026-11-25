@@ -153,6 +153,7 @@ const EntirePlugin: Plugin = async ({ directory }) => {
         })
         proc.on("error", () => resolve())
         proc.on("close", () => resolve())
+        proc.stdin?.on("error", () => {})
         proc.stdin?.end(json + "\n")
       })
     } catch {

@@ -42,13 +42,7 @@ class WebhookBookingWorker:
             if event_id in self._results:
                 return dict(self._results[event_id])
 
-            try:
-                job_id = await dispatch_fn(payload)
-            except Exception:
-                # Allow legitimate retries with the same payload when dispatch_fn fails
-                if event_id not in self._results:
-                    self._payload_fingerprints.pop(event_id, None)
-                raise
+            job_id = await dispatch_fn(payload)
 
             result = {
                 "status": "dispatched",

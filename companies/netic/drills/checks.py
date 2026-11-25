@@ -76,7 +76,7 @@ def check_drill_02(mod: ModuleType) -> list[str]:
                 f"Call B context corrupted: got customer_id={res_b['customer_id']!r}"
             )
 
-    async def _scenario_single_winner_and_rollback() -> None:
+    async def _scenario_single_winner() -> None:
         coord = mod.VoiceBookingCoordinator({"slot_last"})
 
         async def noop_crm(_cust: str, _slot: str) -> None:
@@ -93,7 +93,7 @@ def check_drill_02(mod: ModuleType) -> list[str]:
         if len(winners) != 1:
             failures.append(f"concurrent booking for same slot produced {len(winners)} winners (expected 1)")
 
-        # Rollback check when crm_notify raises
+    async def _scenario_rollback() -> None:
         coord_fail = mod.VoiceBookingCoordinator({"slot_err"})
         coord_fail.begin_call("c_err", "cust_err", "+1999")
 
@@ -107,11 +107,15 @@ def check_drill_02(mod: ModuleType) -> list[str]:
         if not coord_fail.is_slot_open("slot_err"):
             failures.append("slot remained unavailable after crm_notify raised an exception")
 
-    try:
-        asyncio.run(_scenario_context_isolation())
-        asyncio.run(_scenario_single_winner_and_rollback())
-    except Exception as exc:
-        failures.append(f"unexpected exception during Drill 2 checks: {type(exc).__name__}: {exc}")
+    for label, scenario in (
+        ("context_isolation", _scenario_context_isolation),
+        ("single_winner", _scenario_single_winner),
+        ("rollback_on_error", _scenario_rollback),
+    ):
+        try:
+            asyncio.run(scenario())
+        except Exception as exc:
+            failures.append(f"Drill 2 {label} raised {type(exc).__name__}: {exc}")
 
     return failures
 
@@ -166,7 +170,7 @@ def check_drill_03(mod: ModuleType) -> list[str]:
         if res_a.get("job_id") != "job_cust_42" or res_b.get("job_id") != "job_cust_42":
             failures.append("concurrent duplicate callers did not receive consistent job_id result")
 
-        # 3. Reusing same event_id with mutated payload must raise ValueError
+        # 3. Reusing same event_id with mutated payload must raise ValueError (both after success and after failed attempt)
         try:
             await worker2.handle_event(
                 "evt_dup",
@@ -174,6 +178,28 @@ def check_drill_03(mod: ModuleType) -> list[str]:
                 slow_dispatch,
             )
             failures.append("reusing event_id with conflicting payload did not raise ValueError")
+        except ValueError:
+            pass
+
+        worker3 = mod.WebhookBookingWorker()
+
+        async def always_fail(_p: dict) -> str:
+            raise ConnectionError("CRM down")
+
+        try:
+            await worker3.handle_event("evt_failed_once", payload, always_fail)
+        except ConnectionError:
+            pass
+
+        try:
+            await worker3.handle_event(
+                "evt_failed_once",
+                {"customer_id": "cust_TAMPERED", "service": "PLUMBING"},
+                slow_dispatch,
+            )
+            failures.append(
+                "reusing event_id with conflicting payload after a failed attempt did not raise ValueError"
+            )
         except ValueError:
             pass
 
