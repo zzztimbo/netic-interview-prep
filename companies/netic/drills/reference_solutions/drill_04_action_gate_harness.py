@@ -10,7 +10,7 @@ from typing import Any, Awaitable, Callable
 FALLBACK_REPLY = "I want to make sure I get this right — could you repeat what time works best for you?"
 SLOT_CONFLICT_REPLY = "That time slot was just taken — let me check the next available time for you."
 
-_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.DOTALL | re.IGNORECASE)
+_FENCE_RE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNORECASE)
 _VALID_ACTIONS = {"BOOK", "ASK_CLARIFICATION", "NO_AVAILABILITY"}
 
 
@@ -18,14 +18,28 @@ def _parse_llm_json(raw: str) -> dict[str, Any] | None:
     if not isinstance(raw, str) or not raw.strip():
         return None
     cleaned = raw.strip()
-    match = _FENCE_RE.match(cleaned)
+    match = _FENCE_RE.search(cleaned)
     if match:
         cleaned = match.group(1).strip()
     try:
         parsed = json.loads(cleaned)
+        if isinstance(parsed, dict):
+            return parsed
     except json.JSONDecodeError:
-        return None
-    return parsed if isinstance(parsed, dict) else None
+        pass
+
+    # Fallback: locate an embedded JSON object surrounded by brief prose
+    decoder = json.JSONDecoder()
+    idx = cleaned.find("{")
+    while idx != -1:
+        try:
+            obj, _ = decoder.raw_decode(cleaned[idx:])
+            if isinstance(obj, dict):
+                return obj
+        except json.JSONDecodeError:
+            pass
+        idx = cleaned.find("{", idx + 1)
+    return None
 
 
 async def execute_agent_turn(

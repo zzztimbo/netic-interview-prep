@@ -221,8 +221,8 @@ def check_drill_04(mod: ModuleType) -> list[str]:
             booked_calls.append((cust_id, slot_id))
             return slot_id == "slot_valid"
 
-        # 1. Markdown-fenced JSON should parse cleanly without raising
-        fenced = '```json\n{"action": "BOOK", "slot_id": "slot_valid", "spoken_reply": "Booked for 2pm!"}\n```'
+        # 1. Markdown-fenced JSON (even with surrounding prose) should parse cleanly without raising
+        fenced = 'Sure, here is the decision:\n```json\n{"action": "BOOK", "slot_id": "slot_valid", "spoken_reply": "Booked for 2pm!"}\n```\nThanks!'
         try:
             res_fenced = await mod.execute_agent_turn(
                 fenced, "cust_1", ["slot_valid"], fake_book
