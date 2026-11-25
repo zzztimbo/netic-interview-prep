@@ -1,0 +1,76 @@
+{
+  "cli_version": "0.13.4",
+  "checkpoint_id": "01M886DCTVDDHNFMMXYRZRZWVH",
+  "strategy": "manual-commit",
+  "branch": "company/netic",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gitignore",
+    "README.md",
+    "companies/netic/01-research-summary.md",
+    "companies/netic/02-debugging-methodology.md",
+    "companies/netic/03-prep-plan.md",
+    "companies/netic/04-interview-day-checklist.md",
+    "companies/netic/05-my-playbook.md",
+    "companies/netic/drills/README.md",
+    "companies/netic/drills/__init__.py",
+    "companies/netic/drills/checks.py",
+    "companies/netic/drills/problems/__init__.py",
+    "companies/netic/drills/problems/drill_01_slot_scheduler.py",
+    "companies/netic/drills/problems/drill_02_async_session_race.py",
+    "companies/netic/drills/problems/drill_03_webhook_idempotency.py",
+    "companies/netic/drills/problems/drill_04_action_gate_harness.py",
+    "companies/netic/drills/reference_solutions/__init__.py",
+    "companies/netic/drills/reference_solutions/drill_01_slot_scheduler.py",
+    "companies/netic/drills/reference_solutions/drill_02_async_session_race.py",
+    "companies/netic/drills/reference_solutions/drill_03_webhook_idempotency.py",
+    "companies/netic/drills/reference_solutions/drill_04_action_gate_harness.py",
+    "companies/netic/drills/run_drill.py",
+    "companies/netic/drills/test_drills_suite.py",
+    "companies/netic/exercises/01-off-by-one.md",
+    "companies/netic/exercises/02-stale-cache.md",
+    "companies/netic/exercises/03-race-condition.md",
+    "companies/netic/exercises/04-api-mismatch.md",
+    "companies/netic/exercises/05-llm-hallucination.md",
+    "companies/netic/exercises/06-slow-query.md",
+    "companies/netic/exercises/07-deadlock.md",
+    "companies/netic/exercises/08-frontend-backend.md",
+    "companies/netic/exercises/09-state-machine.md",
+    "companies/netic/exercises/10-prod-incident.md",
+    "companies/netic/exercises/11-ai-assisted.md",
+    "companies/netic/exercises/12-distributed-tracing.md",
+    "companies/netic/mock-interviews/mock-01.md",
+    "companies/netic/mock-interviews/mock-02.md",
+    "companies/netic/mock-interviews/mock-03.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 214719,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1997569,
+    "output_tokens": 39487,
+    "api_call_count": 31
+  },
+  "redaction": {
+    "replacements": 296,
+    "layers": {
+      "betterleaks": 0,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 0,
+      "credentialed_uri": 0,
+      "entropy": 1212,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  }
+}
